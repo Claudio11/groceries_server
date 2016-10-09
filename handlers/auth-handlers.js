@@ -90,7 +90,7 @@ let auth = {
 
   // Render login page
   getLogin(req, res) {
-    return res.stauts(200);
+    return res.status(200);
   },
 
   /**

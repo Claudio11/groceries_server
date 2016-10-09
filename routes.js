@@ -2,6 +2,8 @@ import ensureAuth from './passport/ensure-authenticated';
 import authHandler from './handlers/auth-handlers';
 import emailHandler from './handlers/email-handlers';
 import express from 'express';
+import ShoppingList from './models/shoppingList';
+
 let router = express.Router();
 
 // Check if user is already logged-in
@@ -39,5 +41,11 @@ router.get('/api/forgot-password',
 router.post('/api/send-new-password',
   checkIfLoggedIn,
   emailHandler.sendNewPassword);
+
+router.get('/shoppingList', function (req, res) {
+    ShoppingList.find({}, function (err, shoppingListCatalog) {
+        res.send(shoppingListCatalog);
+    })
+});
 
 export default router;
