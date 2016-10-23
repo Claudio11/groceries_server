@@ -43,9 +43,17 @@ router.post('/api/send-new-password',
   emailHandler.sendNewPassword);
 
 router.get('/shoppingList', function (req, res) {
-    ShoppingList.find({}, function (err, shoppingListCatalog) {
-        res.send(shoppingListCatalog);
-    })
+    ShoppingList.find({}).populate('tasks.item')
+        .exec(function (err, shoppingList) {
+            res.send(shoppingList);
+        });
+});
+
+router.get('/shoppingList/:id', function testfn(req, res, next){
+    ShoppingList.findOne({_id: req.params.id}).populate('tasks.item')
+        .exec(function (err, shoppingList) {
+            res.send(shoppingList);
+        });
 });
 
 export default router;

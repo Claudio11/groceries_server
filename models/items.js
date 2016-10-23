@@ -7,6 +7,6 @@ const itemsSchema = new mongoose.Schema({
   }
 });
 
-const Items = mongoose.model('items', shoppingLisitemsSchematSchema);
+const Item = mongoose.model('Item', itemsSchema);
 
-export default Items;
+export default Item;
