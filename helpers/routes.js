@@ -3,7 +3,7 @@ let router;
 // Creates list routes from the given parameter configuration.
 let addGenericListRoutes = (routeData) => {
     router.get(`/${routeData.key}`, function (req, res) {
-      routeData.model.find({}).populate('')
+      routeData.model.find({}).populate(routeData.children)
           .exec(function (err, list) {
               res.send(list);
           });
@@ -13,7 +13,7 @@ let addGenericListRoutes = (routeData) => {
 // Creates item route from the given parameter configuration.
 let addGenericItemRoutes = (routeData) => {
     router.get(`/${routeData.key}/:id`, function (req, res, next){
-        routeData.model.findOne({_id: req.params.id})
+        routeData.model.findOne({_id: req.params.id}).populate(routeData.children)
             .exec(function (err, item) {
                 res.send(item);
             });
