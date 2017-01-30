@@ -31,7 +31,7 @@ let routesHelper = {
         }
     },
 
-    setRoute (r) {
+    setRouter (r) {
         router = r;
     }
 }

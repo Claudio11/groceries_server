@@ -55,7 +55,7 @@ let routesConfig = [{ key: 'platform', model: Platform, children: ''},
                     { key: 'portfolio', model: Portfolio, children: 'applications'},
                     { key: 'user', model: User, children: ''}];
 
-routesHelper.setRoute(router);
+routesHelper.setRouter(router);
 routesHelper.addGenericRoutes(routesConfig);
 
 export default router;
