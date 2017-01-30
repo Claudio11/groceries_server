@@ -5,6 +5,7 @@ import express from 'express';
 
 import ShoppingList from './models/shoppingList';
 import Application from './models/application';
+import Platform from './models/platform';
 
 let router = express.Router();
 
@@ -59,16 +60,30 @@ router.get('/shoppingList/:id', function (req, res, next){
 });
 
 router.get('/application', function (req, res) {
-    Application.find({}).populate('platforms')
+    Application.find({}).populate('platforms owner')
         .exec(function (err, apps) {
             res.send(apps);
         });
 });
 
 router.get('/application/:id', function (req, res, next){
-    Application.findOne({_id: req.params.id}).populate('platforms')
+    Application.findOne({_id: req.params.id}).populate('platforms owner')
         .exec(function (err, app) {
             res.send(app);
+        });
+});
+
+router.get('/platform', function (req, res) {
+    Platform.find({})
+        .exec(function (err, platforms) {
+            res.send(platforms);
+        });
+});
+
+router.get('/platform/:id', function (req, res, next){
+    Platform.findOne({_id: req.params.id})
+        .exec(function (err, platform) {
+            res.send(platform);
         });
 });
 
