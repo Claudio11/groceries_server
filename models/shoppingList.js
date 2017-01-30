@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-require('./items');
+import Item from './items';
 
 const shoppingListSchema = new mongoose.Schema({
   'name': {

@@ -2,7 +2,9 @@ import ensureAuth from './passport/ensure-authenticated';
 import authHandler from './handlers/auth-handlers';
 import emailHandler from './handlers/email-handlers';
 import express from 'express';
+
 import ShoppingList from './models/shoppingList';
+import Application from './models/application';
 
 let router = express.Router();
 
@@ -49,10 +51,24 @@ router.get('/shoppingList', function (req, res) {
         });
 });
 
-router.get('/shoppingList/:id', function testfn(req, res, next){
+router.get('/shoppingList/:id', function (req, res, next){
     ShoppingList.findOne({_id: req.params.id}).populate('tasks.item')
         .exec(function (err, shoppingList) {
             res.send(shoppingList);
+        });
+});
+
+router.get('/application', function (req, res) {
+    Application.find({}).populate('platforms')
+        .exec(function (err, apps) {
+            res.send(apps);
+        });
+});
+
+router.get('/application/:id', function (req, res, next){
+    Application.findOne({_id: req.params.id}).populate('platforms')
+        .exec(function (err, app) {
+            res.send(app);
         });
 });
 
