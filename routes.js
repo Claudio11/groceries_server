@@ -5,11 +5,10 @@ import authHandler from './handlers/auth-handlers';
 import emailHandler from './handlers/email-handlers';
 import routesHelper from './helpers/routes';
 
-import ShoppingList from './models/shoppingList';
 import Application from './models/application';
 import Platform from './models/platform';
-import Portfolio from './models/platform';
-import User from './models/platform';
+import Portfolio from './models/portfolio';
+import User from './models/user';
 
 let router = express.Router();
 
