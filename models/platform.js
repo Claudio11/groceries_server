@@ -21,7 +21,15 @@ const platformsSchema = new mongoose.Schema({
     'type': String,
     'required': true
   }
+},
+{
+    toObject: { virtuals: true },
+    toJSON: { virtuals: true }
 });
+platformsSchema.virtual('id').get(function () {
+  return this._id.toHexString();
+});
+
 
 const Platform = mongoose.model('Platform', platformsSchema);
 

@@ -50,12 +50,19 @@ router.post('/api/send-new-password',
 
 
 // Generic routes config.
-let routesConfig = [{ key: 'platform', model: Platform, children: ''},
-                    { key: 'application', model: Application, children: 'platforms owner'},
-                    { key: 'portfolio', model: Portfolio, children: 'applications'},
-                    { key: 'user', model: User, children: ''}];
+let routesConfig = [{ key: 'platforms', model: Platform, children: ''},
+                    { key: 'applications', model: Application, children: 'platforms owner'},
+                    { key: 'portfolios', model: Portfolio, children: 'applications'},
+                    { key: 'users', model: User, children: ''}];
 
 routesHelper.setRouter(router);
 routesHelper.addGenericRoutes(routesConfig);
+
+router.put('/users/:id', function (req, res) {
+  console.dir(req.body)
+  User.findOneAndUpdate({_id:req.params.id}, req.body, function (err, u) {
+    res.send(u);
+  });
+});
 
 export default router;

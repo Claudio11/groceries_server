@@ -1,10 +1,13 @@
 import express from 'express';
 const app = express();
 import mongoose from 'mongoose';
+import routes from './routes';
+import bodyParser from 'body-parser';
 
 app.use( (req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   next();
 });
 
@@ -26,7 +29,8 @@ mongoose.connect(uri, {}, (err)=> {
   }
 });
 
-import routes from './routes';
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 app.use('/api', routes);
 

@@ -12,6 +12,14 @@ const portfolioSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Application'
   }]
+},
+{
+    toObject: { virtuals: true },
+    toJSON: { virtuals: true }
+});
+
+portfolioSchema.virtual('id').get(function () {
+  return this._id.toHexString();
 });
 
 const Portfolio = mongoose.model('Portfolio', portfolioSchema);
