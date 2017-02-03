@@ -58,10 +58,11 @@ let routesConfig = [{ key: 'platforms', model: Platform, children: ''},
 routesHelper.setRouter(router);
 routesHelper.addGenericRoutes(routesConfig);
 
+
+
 router.put('/users/:id', function (req, res) {
-  console.dir(req.body)
-  User.findOneAndUpdate({_id:req.params.id}, req.body, function (err, u) {
-    res.send(u);
+  User.findOneAndUpdate( {_id: req.params.id}, req.body, { new: true }, function (err, doc) {
+    res.json({data: doc});
   });
 });
 
