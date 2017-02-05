@@ -1,9 +1,19 @@
 let router;
 
+// Creates the object to pass to make a contain search, instead of an exact match.
+let constructContainsFieldFromQuery = (query) => {
+    //{ "authors": { "$regex": "Alex", "$options": "i" } }
+    let containsQueryObject = {};
+    for (let i in query) {
+        containsQueryObject[i] = { "$regex": query[i], "$options": "i" };
+    }
+    return containsQueryObject;
+}
+
 // Creates list routes from the given parameter configuration.
 let addGenericListRoutes = (routeData) => {
     router.get(`/${routeData.key}`, function (req, res) {
-      routeData.model.find({}).populate(routeData.children)
+      routeData.model.find(constructContainsFieldFromQuery(req.query)).populate(routeData.children)
           .exec(function (err, list) {
               let resp = { data: list };
               res.send(resp);
@@ -30,6 +40,19 @@ let addUpdateRoutes = (routeData) => {
     });
 }
 
+let addInsertRoutes = (routeData) => {
+    router.post(`/${routeData.key}`, function (req, res, next) {
+        var item = new routeData.model(req.body);
+        item.save(function(err) {
+            if (err) {
+                return next(err);
+            } else {
+                res.json(item);
+            }
+        });
+    });
+}
+
 let routesHelper = {
     addGenericRoutes (routesData) {
         for (let i in routesData) {
@@ -38,6 +61,7 @@ let routesHelper = {
                 addGenericListRoutes(routeData);
                 addGenericItemRoutes(routeData);
                 addUpdateRoutes(routeData);
+                addInsertRoutes(routeData);
             }
         }
     },

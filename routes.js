@@ -58,27 +58,5 @@ let routesConfig = [{ key: 'platforms', model: Platform, children: ''},
 routesHelper.setRouter(router);
 routesHelper.addGenericRoutes(routesConfig);
 
-router.post('/users', function (req, res, next) {
-    var user = new User(req.body);
-    user.save(function(err) {
-        if (err) {
-            return next(err);
-        } else {
-            res.json(user);
-        }
-    });
-});
-
-router.post('/applications', function (req, res, next) {
-    //req.body.owner = "588f970e40e8001a489f061e";  // Hardcoding it for  now.
-    var app = new Application(req.body);
-    app.save(function(err) {
-        if (err) {
-            return next(err);
-        } else {
-            res.json(app);
-        }
-    });
-});
 
 export default router;
