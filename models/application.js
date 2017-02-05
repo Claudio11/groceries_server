@@ -10,15 +10,21 @@ const applicationSchema = new mongoose.Schema({
   },
   'status': {
     'type': String,
-    'required': true
+    //'required': true,
+    //match: /[a-z]+/
+    'enum': ['pending', 'open', 'in-progress'],
+    'default' : 'pending',
+    // 'validate': [ (st) => {
+    //     return st && st.length;
+    //  }, '{PATH} not empty']
   },
   'thumbnail': {
     'type': String,
     'required': false
   },
   'platforms': [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Platform'
+    'type': mongoose.Schema.Types.ObjectId,
+    'ref': 'Platform'
   }],
   'owner': {
     'type': mongoose.Schema.Types.ObjectId,
