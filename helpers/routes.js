@@ -22,6 +22,14 @@ let addGenericItemRoutes = (routeData) => {
     });
 }
 
+let addUpdateRoutes = (routeData) => {
+    router.put(`/${routeData.key}/:id`, function (req, res) {
+        routeData.model.findOneAndUpdate( { _id: req.params.id }, req.body, { new: true }, function (err, doc) {
+            res.json({data: doc});
+        });
+    });
+}
+
 let routesHelper = {
     addGenericRoutes (routesData) {
         for (let i in routesData) {
@@ -29,6 +37,7 @@ let routesHelper = {
             if (routeData) {
                 addGenericListRoutes(routeData);
                 addGenericItemRoutes(routeData);
+                addUpdateRoutes(routeData);
             }
         }
     },
