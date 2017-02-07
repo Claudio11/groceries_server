@@ -85,6 +85,30 @@ let addChildrenGetRoutes = (routeData) => {
     }
 }
 
+let addChildrenGetRecordRoutes = (routeData) => {
+    let childrenArray = (routeData && routeData.children) ? routeData.children.split(' ') : [];
+    for (let i in childrenArray) {
+        let child = childrenArray[i];
+        router.get(`/${routeData.key}/:id/${child}/:childId`, function (req, res, next) {
+          routeData.model.findOne({ _id: req.params.id })
+              .populate({
+                  path: child,
+                  match: { _id: req.params.childId }
+              })
+              .exec(function (err, item) {
+                  let data = { data: [] };
+                  if (err) {
+                      return next(err);
+                  }
+                  if (item && item[child] && item[child].length) {
+                      data = { data: item[child][0] };
+                  }
+                  res.send(data);
+              });
+        });
+    }
+}
+
 let routesHelper = {
     addGenericRoutes (routesData) {
         for (let i in routesData) {
@@ -96,6 +120,7 @@ let routesHelper = {
                 addInsertRoutes(routeData);
                 addDeleteRoutes(routeData);
                 addChildrenGetRoutes(routeData);
+                addChildrenGetRecordRoutes(routeData);
             }
         }
     },
