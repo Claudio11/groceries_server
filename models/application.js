@@ -12,7 +12,7 @@ const applicationSchema = new mongoose.Schema({
     'type': String,
     //'required': true,
     //match: /[a-z]+/
-    'enum': ['pending', 'open', 'in-progress'],
+    'enum': ['pending', 'approved', 'denied'],
     'default' : 'pending',
     // 'validate': [ (st) => {
     //     return st && st.length;
@@ -29,7 +29,12 @@ const applicationSchema = new mongoose.Schema({
   'owner': {
     'type': mongoose.Schema.Types.ObjectId,
     'ref': 'User'
-  }
+  },
+  'collaborators': [{
+    'type': mongoose.Schema.Types.ObjectId,
+    'ref': 'User',
+    'role': String
+  }],
 },
 {
     toObject: { virtuals: true },

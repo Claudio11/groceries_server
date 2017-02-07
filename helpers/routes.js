@@ -52,6 +52,19 @@ let addInsertRoutes = (routeData) => {
     });
 }
 
+let addDeleteRoutes = (routeData) => {
+    router.delete(`/${routeData.key}/:id`, function (req, res, next) {
+        routeData.model.remove( { _id: req.params.id }, function (err) {
+            if (err) {
+                return next(err);
+            }
+            else {
+                res.send(res);
+            }
+        });
+    });
+}
+
 let routesHelper = {
     addGenericRoutes (routesData) {
         for (let i in routesData) {
@@ -61,6 +74,7 @@ let routesHelper = {
                 addGenericItemRoutes(routeData);
                 addUpdateRoutes(routeData);
                 addInsertRoutes(routeData);
+                addDeleteRoutes(routeData);
             }
         }
     },
