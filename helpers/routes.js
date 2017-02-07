@@ -1,8 +1,7 @@
 let router;
 
-// Creates the object to pass to make a contain search, instead of an exact match.
+// Creates the object to pass (to find method) to make a contain search, instead of an exact match.
 let constructContainsFieldFromQuery = (query) => {
-    //{ "authors": { "$regex": "Alex", "$options": "i" } }
     let containsQueryObject = {};
     for (let i in query) {
         containsQueryObject[i] = { "$regex": query[i], "$options": "i" };
@@ -47,7 +46,7 @@ let addInsertRoutes = (routeData) => {
             if (err) {
                 return next(err);
             } else {
-                res.json(item);
+                res.json({data: item});
             }
         });
     });
