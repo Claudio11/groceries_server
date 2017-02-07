@@ -31,10 +31,15 @@ const userSchema = new mongoose.Schema({
     'type': String,
     'required': false
   },
-  
+
   'isAdmin': {
     'type': Boolean,
     'required': true
+  }
+
+  'role': {
+    'type': String,
+    'required': false  // TODO: True?
   }
 },
 {
