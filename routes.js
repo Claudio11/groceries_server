@@ -58,5 +58,4 @@ let routesConfig = [{ key: 'platforms', model: Platform, children: ''},
 routesHelper.setRouter(router);
 routesHelper.addGenericRoutes(routesConfig);
 
-
 export default router;

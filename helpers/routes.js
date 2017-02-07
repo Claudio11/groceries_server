@@ -70,7 +70,11 @@ let addChildrenGetRoutes = (routeData) => {
     for (let i in childrenArray) {
         let child = childrenArray[i];
         router.get(`/${routeData.key}/:id/${child}`, function (req, res, next) {
-            routeData.model.findOne({ _id: req.params.id } ).populate(child)
+            routeData.model.findOne({ _id: req.params.id } )
+              .populate({
+                  path: child,
+                  match: constructContainsFieldFromQuery(req.query)
+              })
               .exec(function (err, item) {
                   let data = { data: [] };
                   if (err) {
