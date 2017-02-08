@@ -54,8 +54,13 @@ let addGenericListRoutes = (routeData) => {
     router.get(`/${routeData.key}`, function (req, res) {
       routeData.model.find(constructContainsFieldFromQuery(req.query)).populate(routeData.children)
           .exec(function (err, list) {
-              let resp = { data: list };
-              res.send(resp);
+              if (err) {
+                  res.send(err);
+              }
+              else {
+                  let resp = { data: list };
+                  res.send(resp);
+              }
           });
     });
 }
@@ -65,8 +70,13 @@ let addGenericItemRoutes = (routeData) => {
     router.get(`/${routeData.key}/:id`, function (req, res, next){
         routeData.model.findOne({_id: req.params.id}).populate(routeData.children)
             .exec(function (err, item) {
-                let resp = { data: item };
-                res.send(resp);
+                if (err) {
+                    res.send(err);
+                }
+                else {
+                    let resp = { data: item };
+                    res.send(resp);
+                }
             });
     });
 }
@@ -75,7 +85,12 @@ let addGenericItemRoutes = (routeData) => {
 let addUpdateRoutes = (routeData) => {
     router.put(`/${routeData.key}/:id`, function (req, res) {
         routeData.model.findOneAndUpdate( { _id: req.params.id }, req.body, { new: true }, function (err, doc) {
-            res.json({data: doc});
+            if (err) {
+                res.send(err);
+            }
+            else {
+                res.json({data: doc});
+            }
         });
     });
 }
@@ -86,8 +101,9 @@ let addInsertRoutes = (routeData) => {
         var item = new routeData.model(req.body);
         item.save(function(err) {
             if (err) {
-                return next(err);
-            } else {
+                res.send(err);
+            }
+            else {
                 res.json({data: item});
             }
         });
@@ -98,10 +114,10 @@ let addDeleteRoutes = (routeData) => {
     router.delete(`/${routeData.key}/:id`, function (req, res, next) {
         routeData.model.remove( { _id: req.params.id }, function (err) {
             if (err) {
-                return next(err);
+                res.send(err);
             }
             else {
-                res.send(res);
+                res.status(200).send({'message': 'Entity deleted correctly'});
             }
         });
     });
@@ -122,12 +138,14 @@ let addChildrenGetRoutes = (routeData) => {
               .exec(function (err, item) {
                   let data = { data: [] };
                   if (err) {
-                      return next(err);
+                      res.send(err);
                   }
-                  if (item) {
-                      data = { data: item[child] };
+                  else {
+                      if (item) {
+                          data = { data: item[child] };
+                      }
+                      res.send(data);
                   }
-                  res.send(data);
               });
         });
     }
@@ -148,12 +166,14 @@ let addChildrenGetRecordRoutes = (routeData) => {
               .exec(function (err, item) {
                   let data = { data: {} };
                   if (err) {
-                      return next(err);
+                      res.send(err);
                   }
-                  if (item && item[child] && item[child].length) {
-                      data = { data: item[child][0] };
+                  else {
+                      if (item && item[child] && item[child].length) {
+                          data = { data: item[child][0] };
+                      }
+                      res.send(data);
                   }
-                  res.send(data);
               });
         });
     }
