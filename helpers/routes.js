@@ -1,6 +1,9 @@
 let router;
 let routesMetadata; // Metadata of the routes.
 
+// TODO: Normalize method names.
+// TODO: Recursively populate children, grand children, etc.
+
 // Creates the object to pass (to find method) to make a contain search, instead of an exact match.
 let constructContainsFieldFromQuery = (query) => {
     let containsQueryObject = {};
@@ -16,6 +19,7 @@ let getRouteMetadata = (parent) => {
   for (let i in routesMetadata) {
       if (parent === routesMetadata[i].key) {
           parentMetadata = routesMetadata[i];
+          break;
       }
   }
   return parentMetadata;
@@ -155,6 +159,47 @@ let addChildrenGetRecordRoutes = (routeData) => {
     }
 }
 
+// Creates item POST routes. TODO: Finish draft, clean, and test.
+let addPostForChildrenRoutes = (routeData) => {
+    let childrenArray = (routeData && routeData.children) ? routeData.children.split(' ') : [];
+    for (let i in childrenArray) {
+        let child = childrenArray[i];
+        router.post(`/${routeData.key}/:id/${child}`, function (req, res, next) {
+          routeData.model.findOne({_id: req.params.id}).populate(child)
+            .exec(function (err, parent) {
+                let parentModel = new routeData.model(parent);
+                let childMetadata = getRouteMetadata(child);
+                if (parentModel[child]) {
+                    let newChild = new childMetadata.model(req.body);
+                    newChild.save(function(err) {
+                        if (err) {
+                            res.send(err);
+                        } else {
+                            if (Array.isArray(parentModel[child])) {
+                                parentModel[child].push(newChild);
+                            }
+                            else {
+                                parentModel[child] = newChild;
+                            }
+                            parentModel.save(function(err) {
+                                if (err) {
+                                    res.send(err);
+                                } else {
+                                    res.json({data: parentModel});
+                                }
+                            });
+                        }
+                    });
+                }
+                else {
+                  res.status(404).send({'error': 'Child attribute not found'});
+                }
+            });
+
+        });
+    }
+}
+
 let routesHelper = {
     addGenericRoutes (routesData) {
         routesMetadata = routesData;
@@ -168,6 +213,7 @@ let routesHelper = {
                 addDeleteRoutes(routeData);
                 addChildrenGetRoutes(routeData);
                 addChildrenGetRecordRoutes(routeData);
+                addPostForChildrenRoutes(routeData);
             }
         }
     },
