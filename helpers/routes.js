@@ -146,7 +146,7 @@ let addChildrenGetRoutes = (routeData) => {
                           res.send(data);
                       }
                       else {
-                          res.status(404).send({'message': 'Record not found'});
+                          res.status(404).send({'message': 'Record not found', status: 300});
                       }
                   }
               });
@@ -213,7 +213,22 @@ let addPostForChildrenRoutes = (routeData) => {
                                 if (err) {
                                     res.send(err);
                                 } else {
-                                    res.json({data: newChild});
+                                    childMetadata.model.findOne({ _id: newChild._id })
+                                      .populate(childMetadata.children).exec(function (err, item) {
+                                          let data = { data: [] };
+                                          if (err) {
+                                              res.send(err);
+                                          }
+                                          else {
+                                              if (item) {
+                                                  data = { data: item };
+                                                  res.send(data);
+                                              }
+                                              else {
+                                                  res.status(404).send({'message': 'Record not found', status: 300});
+                                              }
+                                          }
+                                      });
                                 }
                             });
                         }
