@@ -104,7 +104,22 @@ let addInsertRoutes = (routeData) => {
                 res.send(err);
             }
             else {
-                res.json({data: item});
+              routeData.model.findOne({ _id: item._id })
+                .populate(routeData.children).exec(function (err, pItem) {
+                    let data = { data: {} };
+                    if (err) {
+                        res.send(err);
+                    }
+                    else {
+                        if (pItem) {
+                            data = { data: pItem };
+                            res.send(data);
+                        }
+                        else {
+                            res.status(404).send({'message': 'Record not found', status: 300});
+                        }
+                    }
+                });
             }
         });
     });
@@ -215,7 +230,7 @@ let addPostForChildrenRoutes = (routeData) => {
                                 } else {
                                     childMetadata.model.findOne({ _id: newChild._id })
                                       .populate(childMetadata.children).exec(function (err, item) {
-                                          let data = { data: [] };
+                                          let data = { data: {} };
                                           if (err) {
                                               res.send(err);
                                           }
