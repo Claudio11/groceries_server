@@ -11,7 +11,12 @@ const portfolioSchema = new mongoose.Schema({
   'applications': [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Application'
-  }]
+  }],
+
+  'owner': {
+    'type': mongoose.Schema.Types.ObjectId,
+    'ref': 'User'
+  }
 },
 {
     toObject: { virtuals: true },
