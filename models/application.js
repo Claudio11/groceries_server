@@ -13,14 +13,14 @@ const applicationSchema = new mongoose.Schema({
     //'required': true,
     //match: /[a-z]+/
     'enum': ['pending', 'approved', 'denied'],
-    'default' : 'pending',
+    'default' : 'pending'
     // 'validate': [ (st) => {
     //     return st && st.length;
     //  }, '{PATH} not empty']
   },
   'thumbnail': {
     'type': String,
-    'required': false
+    'default' : '/assets/apps/angular.png'
   },
   'platforms': [{
     'type': mongoose.Schema.Types.ObjectId,
