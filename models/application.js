@@ -32,8 +32,7 @@ const applicationSchema = new mongoose.Schema({
   },
   'collaborators': [{
     'type': mongoose.Schema.Types.ObjectId,
-    'ref': 'User',
-    'role': String
+    'ref': 'User'
   }],
 },
 {

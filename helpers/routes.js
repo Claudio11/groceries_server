@@ -1,4 +1,5 @@
 let router;
+let routesMetadata; // Metadata of the routes.
 
 // Creates the object to pass (to find method) to make a contain search, instead of an exact match.
 let constructContainsFieldFromQuery = (query) => {
@@ -8,6 +9,41 @@ let constructContainsFieldFromQuery = (query) => {
     }
     return containsQueryObject;
 }
+
+// Obtains the route metadata for a given model (string)
+let getRouteMetadata = (parent) => {
+  let parentMetadata;
+  for (let i in routesMetadata) {
+      if (parent === routesMetadata[i].key) {
+          parentMetadata = routesMetadata[i];
+      }
+  }
+  return parentMetadata;
+}
+
+// Obtains the children of a given model (string)
+let getChildren = (parent) => {
+  let grandChildren = [];
+  let routeMetadata = getRouteMetadata(parent);
+
+  if  (routeMetadata && routeMetadata.children) {
+      grandChildren = routeMetadata.children.split(' ');
+  }
+  return grandChildren;
+}
+
+// Generate the "populate" object for the given parent.
+let generatePopulateConfig = (parent) => {
+  let children = getChildren(parent);
+  let populateConfig = [];
+  for (let i in children) {
+    populateConfig.push({path: children[i]});
+  }
+  return populateConfig;
+}
+
+
+/* ROUTES GENERATION */
 
 // Creates list routes from the given parameter configuration.
 let addGenericListRoutes = (routeData) => {
@@ -31,6 +67,7 @@ let addGenericItemRoutes = (routeData) => {
     });
 }
 
+// Creates item PUT routes.
 let addUpdateRoutes = (routeData) => {
     router.put(`/${routeData.key}/:id`, function (req, res) {
         routeData.model.findOneAndUpdate( { _id: req.params.id }, req.body, { new: true }, function (err, doc) {
@@ -39,6 +76,7 @@ let addUpdateRoutes = (routeData) => {
     });
 }
 
+// Creates item POST routes.
 let addInsertRoutes = (routeData) => {
     router.post(`/${routeData.key}`, function (req, res, next) {
         var item = new routeData.model(req.body);
@@ -51,7 +89,7 @@ let addInsertRoutes = (routeData) => {
         });
     });
 }
-
+// Creates item DELETE routes.
 let addDeleteRoutes = (routeData) => {
     router.delete(`/${routeData.key}/:id`, function (req, res, next) {
         routeData.model.remove( { _id: req.params.id }, function (err) {
@@ -65,15 +103,17 @@ let addDeleteRoutes = (routeData) => {
     });
 }
 
+// Creates the routes to access children of an entity in a restful way.
 let addChildrenGetRoutes = (routeData) => {
     let childrenArray = (routeData && routeData.children) ? routeData.children.split(' ') : [];
     for (let i in childrenArray) {
         let child = childrenArray[i];
         router.get(`/${routeData.key}/:id/${child}`, function (req, res, next) {
-            routeData.model.findOne({ _id: req.params.id } )
+            routeData.model.findOne({ _id: req.params.id })
               .populate({
                   path: child,
-                  match: constructContainsFieldFromQuery(req.query)
+                  match: constructContainsFieldFromQuery(req.query),
+                  populate: generatePopulateConfig(child)
               })
               .exec(function (err, item) {
                   let data = { data: [] };
@@ -89,6 +129,7 @@ let addChildrenGetRoutes = (routeData) => {
     }
 }
 
+// Creates the routes to access an specific child of an entity in a restful way.
 let addChildrenGetRecordRoutes = (routeData) => {
     let childrenArray = (routeData && routeData.children) ? routeData.children.split(' ') : [];
     for (let i in childrenArray) {
@@ -97,10 +138,11 @@ let addChildrenGetRecordRoutes = (routeData) => {
           routeData.model.findOne({ _id: req.params.id })
               .populate({
                   path: child,
-                  match: { _id: req.params.childId }
+                  match: { _id: req.params.childId },
+                  populate: generatePopulateConfig(child)
               })
               .exec(function (err, item) {
-                  let data = { data: [] };
+                  let data = { data: {} };
                   if (err) {
                       return next(err);
                   }
@@ -115,6 +157,7 @@ let addChildrenGetRecordRoutes = (routeData) => {
 
 let routesHelper = {
     addGenericRoutes (routesData) {
+        routesMetadata = routesData;
         for (let i in routesData) {
             let routeData = routesData[i];
             if (routeData) {
