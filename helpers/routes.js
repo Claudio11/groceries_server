@@ -151,6 +151,8 @@ let addChildrenGetRoutes = (routeData) => {
     }
 }
 
+
+
 // Creates the routes to access an specific child of an entity in a restful way.
 let addChildrenGetRecordRoutes = (routeData) => {
     let childrenArray = (routeData && routeData.children) ? routeData.children.split(' ') : [];
@@ -220,6 +222,25 @@ let addPostForChildrenRoutes = (routeData) => {
     }
 }
 
+// Delete for children.
+let addDeleteForChildrenRoutes = (routeData) => {
+    let childrenArray = (routeData && routeData.children) ? routeData.children.split(' ') : [];
+    for (let i in childrenArray) {
+        let child = childrenArray[i];
+        let childMetadata = getRouteMetadata(child);
+        router.delete(`/${routeData.key}/:id/${child}/:childId`, function (req, res, next) {
+            childMetadata.model.remove( { _id: req.params.childId }, function (err) {
+                if (err) {
+                    res.send(err);
+                }
+                else {
+                    res.status(200).send({'message': 'Entity deleted correctly'});
+                }
+            });
+        });
+    }
+}
+
 let routesHelper = {
     addGenericRoutes (routesData) {
         routesMetadata = routesData;
@@ -234,6 +255,7 @@ let routesHelper = {
                 addChildrenGetRoutes(routeData);
                 addChildrenGetRecordRoutes(routeData);
                 addPostForChildrenRoutes(routeData);
+                addDeleteForChildrenRoutes(routeData);
             }
         }
     },
