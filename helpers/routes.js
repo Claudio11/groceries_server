@@ -207,7 +207,7 @@ let addPostForChildrenRoutes = (routeData) => {
                                 if (err) {
                                     res.send(err);
                                 } else {
-                                    res.json({data: parentModel});
+                                    res.json({data: newChild});
                                 }
                             });
                         }
