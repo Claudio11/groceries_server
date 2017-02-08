@@ -143,8 +143,11 @@ let addChildrenGetRoutes = (routeData) => {
                   else {
                       if (item) {
                           data = { data: item[child] };
+                          res.send(data);
                       }
-                      res.send(data);
+                      else {
+                          res.status(404).send({'message': 'Record not found'});
+                      }
                   }
               });
         });
@@ -173,8 +176,11 @@ let addChildrenGetRecordRoutes = (routeData) => {
                   else {
                       if (item && item[child] && item[child].length) {
                           data = { data: item[child][0] };
+                          res.send(data);
                       }
-                      res.send(data);
+                      else {
+                          res.status(404).send({'message': 'Record not found'});
+                      }
                   }
               });
         });
