@@ -16,7 +16,7 @@ if (process.env.NODE_ENV === 'production') {
   uri = process.env.MONGOLAB_URI;
   console.log('===PRODUCTION===');
 } else {
-  uri = 'localhost:27017/express-boiler';
+  uri = 'mongodb://database/express-boiler';
   console.log('===DEVELOPMENT===');
 }
 
