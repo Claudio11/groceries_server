@@ -46,6 +46,39 @@ let generatePopulateConfig = (parent) => {
   return populateConfig;
 }
 
+/**
+ *  Retrieves or saves (if it doesn't exist) a child to the db, then it executes
+ *  the success or fail callback.
+ *
+ *  @param childData Data of the child to be added.
+ *  @param childMetadata Child metadata.
+ *  @param successCb Callback to be called on success.
+ *  @param failureCb Callback to be called on failure.
+ */
+let retrieveChildRecord = (childData, childMetadata, successCb, failureCb) => {
+    console.dir(childData);
+    if (childData.id) { // Existing child record
+        childMetadata.model.findOne( { _id: childData.id }, function (err, doc) {
+            if (err) {
+                failureCb(err);
+            }
+            else {
+                successCb(doc);
+            }
+        });
+    }
+    else {
+        let newChild = new childMetadata.model(childData);
+        newChild.save(function(err) {
+            if (err) {
+                failureCb(err);
+            } else {
+                successCb(newChild);
+            }
+        });
+    }
+}
+
 
 /* ROUTES GENERATION */
 
@@ -71,7 +104,7 @@ let addGenericItemRoutes = (routeData) => {
         routeData.model.findOne({_id: req.params.id}).populate(routeData.children)
             .exec(function (err, item) {
                 if (err) {
-                    res.send(err);
+                    res.status(500).send(err);
                 }
                 else {
                     let resp = { data: item };
@@ -116,7 +149,7 @@ let addInsertRoutes = (routeData) => {
                             res.send(data);
                         }
                         else {
-                            res.status(404).send({'message': 'Record not found', status: 300});
+                            res.status(404).send({'message': 'Record not found'});
                         }
                     }
                 });
@@ -153,7 +186,7 @@ let addChildrenGetRoutes = (routeData) => {
               .exec(function (err, item) {
                   let data = { data: [] };
                   if (err) {
-                      res.send(err);
+                      res.status(500).send(err);
                   }
                   else {
                       if (item) {
@@ -161,7 +194,7 @@ let addChildrenGetRoutes = (routeData) => {
                           res.send(data);
                       }
                       else {
-                          res.status(404).send({'message': 'Record not found', status: 300});
+                          res.status(404).send({'message': 'Record not found'});
                       }
                   }
               });
@@ -202,7 +235,7 @@ let addChildrenGetRecordRoutes = (routeData) => {
     }
 }
 
-// Creates item POST routes. TODO: Finish draft, clean, and test.
+// Creates item POST routes.
 let addPostForChildrenRoutes = (routeData) => {
     let childrenArray = (routeData && routeData.children) ? routeData.children.split(' ') : [];
     for (let i in childrenArray) {
@@ -213,44 +246,41 @@ let addPostForChildrenRoutes = (routeData) => {
                 let parentModel = new routeData.model(parent);
                 let childMetadata = getRouteMetadata(child);
                 if (parentModel[child]) {
-                    let newChild = new childMetadata.model(req.body);
-                    newChild.save(function(err) {
-                        if (err) {
-                            res.send(err);
-                        } else {
-                            if (Array.isArray(parentModel[child])) {
-                                parentModel[child].push(newChild);
-                            }
-                            else {
-                                parentModel[child] = newChild;
-                            }
-                            parentModel.save(function(err) {
-                                if (err) {
-                                    res.send(err);
-                                } else {
-                                    childMetadata.model.findOne({ _id: newChild._id })
-                                      .populate(childMetadata.children).exec(function (err, item) {
-                                          let data = { data: {} };
-                                          if (err) {
-                                              res.send(err);
+                    retrieveChildRecord(req.body, childMetadata, function (newChild) {
+                        if (Array.isArray(parentModel[child])) {
+                            parentModel[child].push(newChild);
+                        }
+                        else {
+                            parentModel[child] = newChild;
+                        }
+                        parentModel.save(function(err) {
+                            if (err) {
+                                res.send(err);
+                            } else {
+                                childMetadata.model.findOne({ _id: newChild._id })
+                                  .populate(childMetadata.children).exec(function (err, item) {
+                                      let data = { data: {} };
+                                      if (err) {
+                                          res.send(err);
+                                      }
+                                      else {
+                                          if (item) {
+                                              data = { data: item };
+                                              res.send(data);
                                           }
                                           else {
-                                              if (item) {
-                                                  data = { data: item };
-                                                  res.send(data);
-                                              }
-                                              else {
-                                                  res.status(404).send({'message': 'Record not found', status: 300});
-                                              }
+                                              res.status(404).send({'message': 'Record not found'});
                                           }
-                                      });
-                                }
-                            });
-                        }
+                                      }
+                                  });
+                            }
+                        });
+                    }, function (err) {
+                        res.send(err); // Error cb.
                     });
                 }
                 else {
-                  res.status(404).send({'error': 'Child attribute not found'});
+                    res.status(404).send({'error': 'Child attribute not found'});
                 }
             });
 
@@ -265,14 +295,38 @@ let addDeleteForChildrenRoutes = (routeData) => {
         let child = childrenArray[i];
         let childMetadata = getRouteMetadata(child);
         router.delete(`/${routeData.key}/:id/${child}/:childId`, function (req, res, next) {
-            childMetadata.model.remove( { _id: req.params.childId }, function (err) {
-                if (err) {
-                    res.send(err);
-                }
-                else {
-                    res.status(200).send({'message': 'Entity deleted correctly'});
-                }
-            });
+            routeData.model.findOne({_id: req.params.id}).populate(routeData.children)
+                .exec(function (err, item) {
+                    if (err) {
+                        res.send(err);
+                    }
+                    else {
+                        let parentModel = new routeData.model(item);
+                        let children = parentModel[child];
+                        let childrenChanged = false;
+                        for (let i in children) {
+                            if (children[i].id === req.params.childId) {
+                                children.splice(i, 1);
+                                childrenChanged = true;
+                                break;
+                            }
+                        }
+
+                        if (childrenChanged) {
+                            routeData.model.findOneAndUpdate( { _id: req.params.id }, parentModel, { new: true }, function (err, doc) {
+                                if (err) {
+                                    res.status(405).send(err);
+                                }
+                                else {
+                                    res.status(200).send({data: doc, message: 'Child deleted correctly'});
+                                }
+                            });
+                        }
+                        else {
+                            res.status(404).send(err);
+                        }
+                    }
+                });
         });
     }
 }
