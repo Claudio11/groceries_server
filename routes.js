@@ -1,5 +1,4 @@
 import express from 'express';
-
 import ensureAuth from './passport/ensure-authenticated';
 import authHandler from './handlers/auth-handlers';
 import emailHandler from './handlers/email-handlers';
@@ -9,6 +8,7 @@ import Application from './models/application';
 import Platform from './models/platform';
 import Portfolio from './models/portfolio';
 import User from './models/user';
+import Microservice from './models/microservice';
 
 let router = express.Router();
 
@@ -53,9 +53,11 @@ router.post('/api/send-new-password',
 let routesConfig = [{ key: 'platforms', model: Platform, children: ''},
                     { key: 'applications', model: Application, children: 'platforms owner collaborators'},
                     { key: 'portfolios', model: Portfolio, children: 'applications owner'},
-                    { key: 'users', model: User, children: ''}];
+                    { key: 'users', model: User, children: ''},
+                    { key: 'microservices', model: Microservice, children: ''}];
 
 routesHelper.setRouter(router);
 routesHelper.addGenericRoutes(routesConfig);
+
 
 export default router;
