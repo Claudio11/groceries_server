@@ -1,4 +1,6 @@
 import express from 'express';
+import AdmZip from 'adm-zip';
+
 import ensureAuth from './passport/ensure-authenticated';
 import authHandler from './handlers/auth-handlers';
 import emailHandler from './handlers/email-handlers';
@@ -47,6 +49,20 @@ router.get('/api/forgot-password',
 router.post('/api/send-new-password',
   checkIfLoggedIn,
   emailHandler.sendNewPassword);
+
+router.get('/artboards/:id', function (req, res, next) {
+  var zip = new AdmZip("./myzip.zip");
+  var zipEntries = zip.getEntries(); // an array of ZipEntry records
+
+  zipEntries.forEach(function(zipEntry) {
+      console.log(zipEntry.toString()); // outputs zip entries information
+      if (zipEntry.entryName == "myzip/manifest.json") {
+           console.log(zipEntry.getData().toString('utf8'));
+           res.send({ data: JSON.parse(zipEntry.getData().toString('utf8')) });
+      }
+  });
+});
+
 
 
 // Generic routes config.
