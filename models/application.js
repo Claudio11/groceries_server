@@ -34,6 +34,7 @@ const applicationSchema = new mongoose.Schema({
     'type': mongoose.Schema.Types.ObjectId,
     'ref': 'User'
   }],
+  'versions': [ {} ]
 },
 {
     toObject: { virtuals: true },

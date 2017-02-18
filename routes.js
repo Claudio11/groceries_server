@@ -58,9 +58,39 @@ router.get('/artboards/:id', function (req, res, next) {
       console.log(zipEntry.toString()); // outputs zip entries information
       if (zipEntry.entryName == "myzip/manifest.json") {
            console.log(zipEntry.getData().toString('utf8'));
-           res.send({ data: JSON.parse(zipEntry.getData().toString('utf8')) });
+           res.send({ data: JSON.parse(zipEntry.getData().toString('utf8'))  });
       }
   });
+});
+
+router.post('/applications/:id/v', function (req, res, next) {
+    var zip = new AdmZip("./myzip.zip"); // TODO: Replace by uploaded file.
+    var zipEntries = zip.getEntries();
+
+    zipEntries.forEach(function(zipEntry) {
+        if (zipEntry.entryName == "myzip/manifest.json") {
+             Application.findOne({_id: req.params.id}).populate('platforms owner collaborators v')
+                 .exec(function (err, item) {
+                     if (err) {
+                         res.status(500).send(err);
+                     }
+                     else {
+                         let newAppVersion = { name: req.body.name, manifest: JSON.parse(zipEntry.getData().toString('utf8'))};
+                         let app = new Application(item);
+                         app.versions.push(newAppVersion);
+                         app.save(function (err) {
+                            if (err) {
+                              res.status(500).send(err);
+                            }
+                            else {
+                                res.send({ data: newAppVersion });
+                            }
+                         })
+
+                     }
+                 });
+        }
+    });
 });
 
 
