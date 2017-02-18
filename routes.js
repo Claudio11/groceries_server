@@ -1,5 +1,6 @@
 import express from 'express';
 import AdmZip from 'adm-zip';
+import uuid from 'node-uuid';
 
 import ensureAuth from './passport/ensure-authenticated';
 import authHandler from './handlers/auth-handlers';
@@ -75,7 +76,11 @@ router.post('/applications/:id/v', function (req, res, next) {
                          res.status(500).send(err);
                      }
                      else {
-                         let newAppVersion = { name: req.body.name, manifest: JSON.parse(zipEntry.getData().toString('utf8'))};
+                         let newAppVersion = {
+                                               name: req.body.name,
+                                               manifest: JSON.parse(zipEntry.getData().toString('utf8')),
+                                               id: uuid.v1()
+                                              };
                          let app = new Application(item);
                          app.versions.push(newAppVersion);
                          app.save(function (err) {
@@ -91,6 +96,10 @@ router.post('/applications/:id/v', function (req, res, next) {
                  });
         }
     });
+});
+
+router.get('/applications/:id/v/:versionId', function (req, res, next) {
+
 });
 
 
