@@ -11,6 +11,8 @@ app.use( (req, res, next) => {
   next();
 });
 
+app.use('/uploads', express.static('uploads'))
+
 let uri = '';
 if (process.env.NODE_ENV === 'production') {
   uri = process.env.MONGOLAB_URI;

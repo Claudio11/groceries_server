@@ -1,6 +1,7 @@
 import express from 'express';
 import AdmZip from 'adm-zip';
 import uuid from 'node-uuid';
+import multer from 'multer';
 
 import ensureAuth from './passport/ensure-authenticated';
 import authHandler from './handlers/auth-handlers';
@@ -13,6 +14,7 @@ import Portfolio from './models/portfolio';
 import User from './models/user';
 import Microservice from './models/microservice';
 
+let upload = multer({ dest: 'uploads/' })
 let router = express.Router();
 
 // Check if user is already logged-in
@@ -64,44 +66,66 @@ router.get('/artboards/:id', function (req, res, next) {
   });
 });
 
-router.post('/applications/:id/v', function (req, res, next) {
-    var zip = new AdmZip("./myzip.zip"); // TODO: Replace by uploaded file.
-    var zipEntries = zip.getEntries();
+router.post('/applications/:id/v', upload.single('file'),  function (req, res, next) {
+    if (!req.file) {
+      res.status(400).send({message: 'No uploaded files'});
+    }
+    else {
+        if (req.file.mimetype === 'application/zip') {
+            console.dir(req.file)
+            var zip = new AdmZip(req.file.path);
+            var zipEntries = zip.getEntries();
 
-    zipEntries.forEach(function(zipEntry) {
-        if (zipEntry.entryName == "myzip/manifest.json") {
-             Application.findOne({_id: req.params.id}).populate('platforms owner collaborators v')
-                 .exec(function (err, item) {
-                     if (err) {
-                         res.status(500).send(err);
-                     }
-                     else {
-                         let newAppVersion = {
-                                               name: req.body.name,
-                                               manifest: JSON.parse(zipEntry.getData().toString('utf8')),
-                                               id: uuid.v1()
-                                              };
-                         let app = new Application(item);
-                         app.versions.push(newAppVersion);
-                         app.save(function (err) {
-                            if (err) {
-                              res.status(500).send(err);
-                            }
-                            else {
-                                res.send({ data: newAppVersion });
-                            }
-                         })
+            var folderName = (req.file.originalname) ? req.file.originalname.replace(/\.zip$/,''): '';
+            let manifest;
+            console.log('folderName', folderName);
+            zipEntries.forEach(function(zipEntry) {
+                console.dir(zipEntry.entryName)
+                if (zipEntry.entryName === `${folderName}/manifest.json`) {
+                    console.log('mannnifest')
+                    manifest = JSON.parse(zipEntry.getData().toString('utf8'));
+                }
+                else if (zipEntry.entryName === `${folderName}/Screens/`) {
+                    zip.extractEntryTo(`${folderName}/Screens/`, `uploads/${folderName}/Screens/`, false, true);
+                    console.dir(zipEntry.entryName);
+                }
+            });
 
-                     }
-                 });
+            if (manifest) {
+               Application.findOne({_id: req.params.id}).populate('platforms owner collaborators')
+                   .exec(function (err, item) {
+                       if (err) {
+                           return res.status(500).send(err);
+                       }
+                       else {
+                           let newAppVersion = {
+                                                 name: folderName,
+                                                 manifest: manifest,
+                                                 id: uuid.v1()
+                                                };
+                           let app = new Application(item);
+                           app.versions.push(newAppVersion);
+                           app.save(function (err) {
+                              if (err) {
+                                return res.status(500).send(err);
+                              }
+                              else {
+                                 return  res.send({ data: newAppVersion });
+                              }
+                           })
+
+                       }
+                   });
+            }
+            else {
+                return res.status(400).send({message: 'No manifest file present'});
+            }
         }
-    });
+        else {
+            return res.status(400).send({message: 'Only accepts files of type: "application/zip"'});
+        }
+    }
 });
-
-router.get('/applications/:id/v/:versionId', function (req, res, next) {
-
-});
-
 
 
 // Generic routes config.
