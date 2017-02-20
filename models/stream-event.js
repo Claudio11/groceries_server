@@ -13,6 +13,9 @@ const streamEventSchema = new mongoose.Schema({
   'date':  {
     'type': Date
   },
+  'thumbnail': {
+    'type': String
+  }
 },
 {
     toObject: { virtuals: true },
