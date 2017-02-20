@@ -13,6 +13,7 @@ import Platform from './models/platform';
 import Portfolio from './models/portfolio';
 import User from './models/user';
 import Microservice from './models/microservice';
+import StreamEvent from './models/stream-event';
 
 let upload = multer({ dest: 'uploads/' })
 let router = express.Router();
@@ -78,16 +79,13 @@ router.post('/applications/:id/v', upload.single('file'),  function (req, res, n
 
             var folderName = (req.file.originalname) ? req.file.originalname.replace(/\.zip$/,''): '';
             let manifest;
-            console.log('folderName', folderName);
+
             zipEntries.forEach(function(zipEntry) {
-                console.dir(zipEntry.entryName)
                 if (zipEntry.entryName === `${folderName}/manifest.json`) {
-                    console.log('mannnifest')
                     manifest = JSON.parse(zipEntry.getData().toString('utf8'));
                 }
                 else if (zipEntry.entryName === `${folderName}/Screens/`) {
                     zip.extractEntryTo(`${folderName}/Screens/`, `uploads/${folderName}/Screens/`, false, true);
-                    console.dir(zipEntry.entryName);
                 }
             });
 
@@ -133,7 +131,8 @@ let routesConfig = [{ key: 'platforms', model: Platform, children: ''},
                     { key: 'applications', model: Application, children: 'platforms owner collaborators'},
                     { key: 'portfolios', model: Portfolio, children: 'applications owner'},
                     { key: 'users', model: User, children: ''},
-                    { key: 'microservices', model: Microservice, children: ''}];
+                    { key: 'microservices', model: Microservice, children: ''},
+                    { key: 'stream-events', model: StreamEvent, children: 'source'}];
 
 routesHelper.setRouter(router);
 routesHelper.addGenericRoutes(routesConfig);
