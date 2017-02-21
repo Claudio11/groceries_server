@@ -110,7 +110,7 @@ router.post('/applications/:id/v', upload.single('file'),  function (req, res, n
                               else {
                                   let newStreamEvent = new StreamEvent({
                                                                         type: 3,
-                                                                        name: '',
+                                                                        name: 'New app version created',
                                                                         date: new Date()
                                                                         });
                                   newStreamEvent.save(function (err) {
