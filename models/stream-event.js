@@ -21,7 +21,7 @@ const streamEventSchema = new mongoose.Schema({
     'type': String
   }
 },
- { collection: 'stream-events' }
+{ collection: 'stream-events' },
 {
     toObject: { virtuals: true },
     toJSON: { virtuals: true }

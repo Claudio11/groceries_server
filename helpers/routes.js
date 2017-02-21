@@ -1,3 +1,5 @@
+import { StreamEvent } from '../models/stream-event';
+
 let router;
 let routesMetadata; // Metadata of the routes.
 

@@ -108,8 +108,20 @@ router.post('/applications/:id/v', upload.single('file'),  function (req, res, n
                                   return res.status(500).send(err);
                               }
                               else {
-                                  // TODO: Create stream record.
-                                  return res.send({ data: newAppVersion });
+                                  let newStreamEvent = new StreamEvent({
+                                                                        type: 3,
+                                                                        name: '',
+                                                                        date: new Date()
+                                                                        });
+                                  newStreamEvent.save(function (err) {
+                                      if (err) {
+                                          return res.status(500).send(err);
+                                      }
+                                      else {
+                                          return res.send({ data: newAppVersion });
+                                      }
+                                  });
+
                               }
                            })
 
