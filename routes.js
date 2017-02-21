@@ -133,7 +133,7 @@ let routesConfig = [{ key: 'platforms', model: Platform, children: ''},
                     { key: 'portfolios', model: Portfolio, children: 'applications owner'},
                     { key: 'users', model: User, children: ''},
                     { key: 'microservices', model: Microservice, children: ''},
-                    { key: 'stream-events', model: StreamEvent, children: 'source'}];
+                    { key: 'stream-events', model: StreamEvent, children: 'user'}];
 
 routesHelper.setRouter(router);
 routesHelper.addGenericRoutes(routesConfig);
