@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 import Platform from './platform';
 import User from './user';
+import StreamEvent from './stream-event';
 
 const applicationSchema = new mongoose.Schema({
   'name': {
@@ -43,6 +44,17 @@ const applicationSchema = new mongoose.Schema({
 
 applicationSchema.virtual('id').get(function () {
   return this._id.toHexString();
+});
+
+applicationSchema.post('save', function(doc, next) {
+  let newStreamEvent = new StreamEvent({
+                                        type: 4,
+                                        name: 'New app created',
+                                        date: new Date()
+                                        });
+  newStreamEvent.save(function (err) {
+      next();
+  });
 });
 
 const Application = mongoose.model('Application', applicationSchema);

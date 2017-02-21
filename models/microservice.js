@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+import StreamEvent from './stream-event';
+
 const microservicesSchema = new mongoose.Schema({
   'name': {
     'type': String,
@@ -18,6 +20,17 @@ const microservicesSchema = new mongoose.Schema({
 });
 microservicesSchema.virtual('id').get(function () {
   return this._id.toHexString();
+});
+
+microservicesSchema.post('save', function(doc, next) {
+  let newStreamEvent = new StreamEvent({
+                                        type: 4,
+                                        name: 'New microservice created',
+                                        date: new Date()
+                                        });
+  newStreamEvent.save(function (err) {
+      next();
+  });
 });
 
 
