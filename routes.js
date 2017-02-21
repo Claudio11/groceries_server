@@ -67,6 +67,19 @@ router.get('/artboards/:id', function (req, res, next) {
   });
 });
 
+
+// TODO: Remove after demo.
+let hostedUrls = ['http://www.google.com', 'http://www.amazon.com', 'http://www.ebay.com'];
+let indexHostedUrl = 0;
+
+let getNextHostedUrl = function () {
+    indexHostedUrl++;
+    if (indexHostedUrl >= hostedUrls.length) {
+        indexHostedUrl = 0;
+    }
+    return hostedUrls[indexHostedUrl];
+}
+
 router.post('/applications/:id/v', upload.single('file'),  function (req, res, next) {
     if (!req.file) {
       res.status(400).send({message: 'No uploaded files'});
@@ -96,10 +109,12 @@ router.post('/applications/:id/v', upload.single('file'),  function (req, res, n
                            return res.status(500).send(err);
                        }
                        else {
+                           let currentHostedUrl = getNextHostedUrl();
                            let newAppVersion = {
                                                  name: folderName,
                                                  manifest: manifest,
-                                                 id: uuid.v1()
+                                                 id: uuid.v1(),
+                                                 hostedUrl: currentHostedUrl
                                                 };
                            let app = new Application(item);
                            app.versions.push(newAppVersion);
