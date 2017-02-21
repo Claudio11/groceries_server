@@ -105,10 +105,11 @@ router.post('/applications/:id/v', upload.single('file'),  function (req, res, n
                            app.versions.push(newAppVersion);
                            app.save(function (err) {
                               if (err) {
-                                return res.status(500).send(err);
+                                  return res.status(500).send(err);
                               }
                               else {
-                                 return  res.send({ data: newAppVersion });
+                                  // TODO: Create stream record.
+                                  return res.send({ data: newAppVersion });
                               }
                            })
 

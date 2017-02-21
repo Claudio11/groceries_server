@@ -2,11 +2,15 @@ import mongoose from 'mongoose';
 import User from './user';
 
 const streamEventSchema = new mongoose.Schema({
-  'title': {
+  'type': {
+    'type': Number,
+    'default': 0
+  },
+  'name': {
     'type': String,
     'required': true
   },
-  'source': {
+  'user': {
     'type': mongoose.Schema.Types.ObjectId,
     'ref': 'User'
   },
