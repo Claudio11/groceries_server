@@ -69,7 +69,7 @@ router.get('/artboards/:id', function (req, res, next) {
 
 
 // TODO: Remove after demo.
-let hostedUrls = ['adf-sandbox.altimetrik.com:4444/web/strykerLifeHacksDemo/', 'adf-sandbox.altimetrik.com:4444/web/strykerLifeHacksDemoV1/', 'adf-sandbox.altimetrik.com:4444/web/strykerLifeHacksDemoV2/'];
+let hostedUrls = ['http://adf-sandbox.altimetrik.com:4444/web/strykerLifeHacksDemo/', 'http://adf-sandbox.altimetrik.com:4444/web/strykerLifeHacksDemoV1/', 'http://adf-sandbox.altimetrik.com:4444/web/strykerLifeHacksDemoV2/'];
 let indexHostedUrl = 0;
 
 let getNextHostedUrl = function () {

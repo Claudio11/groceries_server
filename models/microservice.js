@@ -12,6 +12,9 @@ const microservicesSchema = new mongoose.Schema({
   },
   'repo': {
     'type': String
+  },
+  'date': {
+    'type': String
   }
 },
 {
