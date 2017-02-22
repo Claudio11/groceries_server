@@ -13,7 +13,7 @@ const microservicesSchema = new mongoose.Schema({
   'repo': {
     'type': String
   },
-  'createDate': {
+  'createdDate': {
     'type': String
   }
 },
