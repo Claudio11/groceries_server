@@ -7,15 +7,20 @@ import bodyParser from 'body-parser';
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 
+var gClients = [];
+
 
 io.on('connection', function(client){
+  console.log(client.id)
+  gClients.push(client.id);
   // client.on('event', function(data){});
   // client.on('disconnect', function(){});
   client.emit('message', {type:'new-message', text: 'tat'});
-  console.info('asdasd');
+
 
   client.on('from-client', function (data) {
-    console.log('data ata', data);
+
+    io.to(gClients[1]).emit('move-mouse', data)
   });
 });
 
