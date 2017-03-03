@@ -7,21 +7,19 @@ import bodyParser from 'body-parser';
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 
-var gClients = [];
-
-
 io.on('connection', function(client){
   console.log(client.id)
-  gClients.push(client.id);
-  // client.on('event', function(data){});
-  // client.on('disconnect', function(){});
-  client.emit('message', {type:'new-message', text: 'tat'});
 
+  client.join('collaboration');
+  client.emit('set-id', { clientId: client.id });
 
-  client.on('from-client', function (data) {
-
-    io.to(gClients[1]).emit('move-mouse', data)
+  client.on('local-mouse-move', function (data) { // On client move, broadcast to channel.
+    client.broadcast.to('collaboration').emit('remote-mouse-move', data);
   });
+});
+
+io.on('disconnect', function(client){
+  client.broadcast.to('collaboration').emit('client-disconnected', {clientId: client.id});
 });
 
 app.use( (req, res, next) => {
