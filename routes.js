@@ -15,7 +15,7 @@ import User from './models/user';
 import Microservice from './models/microservice';
 import StreamEvent from './models/stream-event';
 
-let upload = multer({ dest: 'uploads/' })
+let upload = multer({ dest: 'uploads/' });
 let router = express.Router();
 
 // Check if user is already logged-in
@@ -85,7 +85,7 @@ router.post('/applications/:id/v', upload.single('file'),  function (req, res, n
       res.status(400).send({message: 'No uploaded files'});
     }
     else {
-        if (req.file.mimetype === 'application/zip') {
+        if (req.file.mimetype === 'application/zip' || req.file.mimetype === 'application/octet-stream' || req.file.mimetype === 'application/x-zip-compressed') {
             console.dir(req.file)
             var zip = new AdmZip(req.file.path);
             var zipEntries = zip.getEntries();

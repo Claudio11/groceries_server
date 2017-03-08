@@ -1,4 +1,8 @@
+import multer from 'multer';
+
 import { StreamEvent } from '../models/stream-event';
+
+let upload = multer({ dest: 'uploads/images' })
 
 let router;
 let routesMetadata; // Metadata of the routes.
@@ -118,8 +122,13 @@ let addGenericItemRoutes = (routeData) => {
 
 // Creates item PUT routes.
 let addUpdateRoutes = (routeData) => {
-    router.put(`/${routeData.key}/:id`, function (req, res) {
-        routeData.model.findOneAndUpdate( { _id: req.params.id }, req.body, { new: true }, function (err, doc) {
+    router.put(`/${routeData.key}/:id`, upload.single('file'), function (req, res) {
+        let entity = JSON.parse(req.entity)
+        if (req.file && (req.file.mimetype === 'image/png' || req.file.mimetype === 'image/jpeg')) {
+          console.dir(req.file);
+          entity.thumbnail = req.file.path;
+        }
+        routeData.model.findOneAndUpdate( { _id: req.params.id }, entity, { new: true }, function (err, doc) {
             if (err) {
                 res.send(err);
             }
@@ -132,8 +141,12 @@ let addUpdateRoutes = (routeData) => {
 
 // Creates item POST routes.
 let addInsertRoutes = (routeData) => {
-    router.post(`/${routeData.key}`, function (req, res, next) {
-        var item = new routeData.model(req.body);
+    router.post(`/${routeData.key}`, upload.single('file'), function (req, res, next) {
+        var item = new routeData.model(JSON.parse(req.entity));
+        if (req.file && (req.file.mimetype === 'image/png' || req.file.mimetype === 'image/jpeg')) {
+          console.dir(req.file);
+          item.thumbnail = req.file.path;
+        }
         item.save(function(err) {
             if (err) {
                 res.send(err);
@@ -242,13 +255,17 @@ let addPostForChildrenRoutes = (routeData) => {
     let childrenArray = (routeData && routeData.children) ? routeData.children.split(' ') : [];
     for (let i in childrenArray) {
         let child = childrenArray[i];
-        router.post(`/${routeData.key}/:id/${child}`, function (req, res, next) {
+        router.post(`/${routeData.key}/:id/${child}`, upload.single('file'), function (req, res, next) {
           routeData.model.findOne({_id: req.params.id}).populate(child)
             .exec(function (err, parent) {
                 let parentModel = new routeData.model(parent);
                 let childMetadata = getRouteMetadata(child);
                 if (parentModel[child]) {
-                    retrieveChildRecord(req.body, childMetadata, function (newChild) {
+                    retrieveChildRecord(JSON.parse(req.entity), childMetadata, function (newChild) {
+                        if (req.file && (req.file.mimetype === 'image/png' || req.file.mimetype === 'image/jpeg')) {
+                          newChild.thumbnail = req.file.path;
+                        }
+
                         if (Array.isArray(parentModel[child])) {
                             parentModel[child].push(newChild);
                         }

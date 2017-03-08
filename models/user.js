@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
     'required': false
   },
 
-  'avatar': {
+  'thumbnail': {
     'type': String,
     'required': false
   },
@@ -46,6 +46,10 @@ const userSchema = new mongoose.Schema({
 
 userSchema.virtual('id').get(function () {
   return this._id.toHexString();
+});
+
+userSchema.virtual('avatar').get(function () {
+  return this.thumbnail;
 });
 
 userSchema.post('save', function(doc, next) {

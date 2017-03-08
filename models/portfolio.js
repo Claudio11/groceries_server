@@ -17,6 +17,10 @@ const portfolioSchema = new mongoose.Schema({
   'owner': {
     'type': mongoose.Schema.Types.ObjectId,
     'ref': 'User'
+  },
+  
+  'thumbnail': {
+    'type': String
   }
 },
 {
