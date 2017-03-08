@@ -142,9 +142,8 @@ let addUpdateRoutes = (routeData) => {
 // Creates item POST routes.
 let addInsertRoutes = (routeData) => {
     router.post(`/${routeData.key}`, upload.single('file'), function (req, res, next) {
-        var item = new routeData.model(JSON.parse(req.entity));
+        var item = new routeData.model(JSON.parse(req.body.entity));
         if (req.file && (req.file.mimetype === 'image/png' || req.file.mimetype === 'image/jpeg')) {
-          console.dir(req.file);
           item.thumbnail = req.file.path;
         }
         item.save(function(err) {
@@ -261,7 +260,7 @@ let addPostForChildrenRoutes = (routeData) => {
                 let parentModel = new routeData.model(parent);
                 let childMetadata = getRouteMetadata(child);
                 if (parentModel[child]) {
-                    retrieveChildRecord(JSON.parse(req.entity), childMetadata, function (newChild) {
+                    retrieveChildRecord(JSON.parse(req.body.entity), childMetadata, function (newChild) {
                         if (req.file && (req.file.mimetype === 'image/png' || req.file.mimetype === 'image/jpeg')) {
                           newChild.thumbnail = req.file.path;
                         }
