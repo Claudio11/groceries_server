@@ -62,7 +62,6 @@ let generatePopulateConfig = (parent) => {
  *  @param failureCb Callback to be called on failure.
  */
 let saveAndRetrieveChildRecord = (childData, childMetadata, successCb, failureCb) => {
-    console.dir(childData);
     if (childData.id) { // Existing child record
         childMetadata.model.findOne( { _id: childData.id }, function (err, doc) {
             if (err) {

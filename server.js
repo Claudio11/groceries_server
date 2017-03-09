@@ -16,11 +16,12 @@ io.on('connection', function(client){
   client.on('local-mouse-move', function (data) { // On client move, broadcast to channel.
     client.broadcast.to('collaboration').emit('remote-mouse-move', data);
   });
+
+  client.on('disconnect', function(client){
+    client.broadcast.to('collaboration').emit('client-disconnected', {clientId: client.id});
+  });
 });
 
-io.on('disconnect', function(client){
-  client.broadcast.to('collaboration').emit('client-disconnected', {clientId: client.id});
-});
 
 app.use( (req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
