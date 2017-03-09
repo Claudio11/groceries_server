@@ -61,7 +61,7 @@ let generatePopulateConfig = (parent) => {
  *  @param successCb Callback to be called on success.
  *  @param failureCb Callback to be called on failure.
  */
-let retrieveChildRecord = (childData, childMetadata, successCb, failureCb) => {
+let saveAndRetrieveChildRecord = (childData, childMetadata, successCb, failureCb) => {
     console.dir(childData);
     if (childData.id) { // Existing child record
         childMetadata.model.findOne( { _id: childData.id }, function (err, doc) {
@@ -259,11 +259,14 @@ let addPostForChildrenRoutes = (routeData) => {
             .exec(function (err, parent) {
                 let parentModel = new routeData.model(parent);
                 let childMetadata = getRouteMetadata(child);
+
+                let currentChild = JSON.parse(req.body.entity)
+                if (req.file && (req.file.mimetype === 'image/png' || req.file.mimetype === 'image/jpeg')) {
+                  currentChild.thumbnail = req.file.path;
+                }
+
                 if (parentModel[child]) {
-                    retrieveChildRecord(JSON.parse(req.body.entity), childMetadata, function (newChild) {
-                        if (req.file && (req.file.mimetype === 'image/png' || req.file.mimetype === 'image/jpeg')) {
-                          newChild.thumbnail = req.file.path;
-                        }
+                    saveAndRetrieveChildRecord(currentChild, childMetadata, function (newChild) {
 
                         if (Array.isArray(parentModel[child])) {
                             parentModel[child].push(newChild);
