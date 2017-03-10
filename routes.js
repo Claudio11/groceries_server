@@ -14,6 +14,7 @@ import Portfolio from './models/portfolio';
 import User from './models/user';
 import Microservice from './models/microservice';
 import StreamEvent from './models/stream-event';
+import Annotation from './models/annotation';
 
 let upload = multer({ dest: 'uploads/' });
 let router = express.Router();
@@ -160,7 +161,8 @@ let routesConfig = [{ key: 'platforms', model: Platform, children: ''},
                     { key: 'portfolios', model: Portfolio, children: 'applications owner'},
                     { key: 'users', model: User, children: ''},
                     { key: 'microservices', model: Microservice, children: ''},
-                    { key: 'stream-events', model: StreamEvent, children: 'user'}];
+                    { key: 'stream-events', model: StreamEvent, children: 'user'},
+                    { key: 'annotations', model: Annotation, children: 'author'}];
 
 routesHelper.setRouter(router);
 routesHelper.addGenericRoutes(routesConfig);
