@@ -67,7 +67,7 @@ let annotationsHelper = {
       // Client created a new annotation.
       client.on('local-annotation-create', function (data) {
         if (data.currentHash === currentHash) {
-            let item = new Annotation(JSON.parse(data.annotation));
+            let item = new Annotation(data.annotation);
             item.save((err) => {
               if (err) {
                 sendError(err);
