@@ -1,6 +1,6 @@
 import uuid from 'node-uuid';
 
-import Annotation from './models/annotation';
+import Annotation from '../models/annotation';
 
 let server = require('http').createServer(app);
 let io = require('socket.io')(server);
@@ -19,7 +19,7 @@ let setCurrentHash = () => {
  *
  *  @param Client that sent the outdated hash.
  */
-let sendCurrentHashOnInvalid(client) => {
+let sendCurrentHashOnInvalid = (client) => {
   client.emit('annotation-hash-invalid', { latestHash: currentHash });
 }
 
@@ -29,7 +29,7 @@ let sendCurrentHashOnInvalid(client) => {
  *  @return Annotations and current hash data { annotations: <annotations[]>,
  *  currentHash: <currentHash> }.
  */
-let createAnnotationsResponse() => {
+let createAnnotationsResponse = () => {
   Annotation.find({}).populate('author').exec(function (err, list) {
       if (err) {
           return { success: false, error: err, annotations: list };
@@ -40,14 +40,14 @@ let createAnnotationsResponse() => {
   });
 }
 
-let sendError (err) => {
+let sendError = (err) => {
   client.emit('annotation-error', err);
 }
 
 /**
  *  Sends the object with locked annotations.
  */
-let sendLockedAnnotations() => {
+let sendLockedAnnotations = () => {
   return { lockedAnnotations: lockedAnnotations, currentHash: currentHash };
 }
 
@@ -55,7 +55,7 @@ setCurrentHash();
 
 let annotationsHelper = {
 
-  bindAnnotations () => {
+  bindAnnotations: () => {
     io.on('connection', function(client){
       console.log(client.id)
 
