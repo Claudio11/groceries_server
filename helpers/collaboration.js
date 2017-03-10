@@ -56,7 +56,7 @@ let annotationsHelper = {
 
     let server = require('http').createServer(app);
     let io = require('socket.io')(server);
-    
+
     io.on('connection', function(client){
       console.log(client.id)
 
@@ -67,6 +67,7 @@ let annotationsHelper = {
       // Client created a new annotation.
       client.on('local-annotation-create', function (data) {
         if (data.currentHash === currentHash) {
+            let item = new Annotation(JSON.parse(data.annotation));
             item.save((err) => {
               if (err) {
                 sendError(err);
