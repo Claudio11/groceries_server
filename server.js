@@ -3,6 +3,7 @@ const app = express();
 import mongoose from 'mongoose';
 import routes from './routes';
 import bodyParser from 'body-parser';
+import annotationsHelper from './helpers/collaboration'
 
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
@@ -21,6 +22,8 @@ io.on('connection', function(client){
     client.broadcast.to('collaboration').emit('client-disconnected', {clientId: client.id});
   });
 });
+
+annotationsHelper.bindAnnotations();
 
 
 app.use( (req, res, next) => {
