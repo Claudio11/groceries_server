@@ -2,9 +2,6 @@ import uuid from 'node-uuid';
 
 import Annotation from '../models/annotation';
 
-let server = require('http').createServer(app);
-let io = require('socket.io')(server);
-
 let currentHash;
 let lockedAnnotations = {};
 
@@ -55,7 +52,11 @@ setCurrentHash();
 
 let annotationsHelper = {
 
-  bindAnnotations: () => {
+  bindAnnotations: (app) => {
+
+    let server = require('http').createServer(app);
+    let io = require('socket.io')(server);
+    
     io.on('connection', function(client){
       console.log(client.id)
 
@@ -123,7 +124,7 @@ let annotationsHelper = {
       });
     });
   }
-  
+
 }
 
 export default annotationsHelper;

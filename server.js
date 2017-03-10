@@ -23,7 +23,7 @@ io.on('connection', function(client){
   });
 });
 
-annotationsHelper.bindAnnotations();
+annotationsHelper.bindAnnotations(app);
 
 
 app.use( (req, res, next) => {
