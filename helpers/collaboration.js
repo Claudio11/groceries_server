@@ -52,10 +52,7 @@ setCurrentHash();
 
 let annotationsHelper = {
 
-  bindAnnotations: (app) => {
-
-    let server = require('http').createServer(app);
-    let io = require('socket.io')(server);
+  bindAnnotations: (app, io) => {
 
     io.on('connection', function(client){
       console.log(client.id)
