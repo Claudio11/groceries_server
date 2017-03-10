@@ -18,12 +18,12 @@ io.on('connection', function(client){
     client.broadcast.to('collaboration').emit('remote-mouse-move', data);
   });
 
-  client.on('disconnect', function(client){
-    client.broadcast.to('collaboration').emit('client-disconnected', {clientId: client.id});
-  });
-});
+  annotationsHelper.bindAnnotationsClientEvents(io, client);
 
-annotationsHelper.bindAnnotations(app);
+  // client.on('disconnect', function(client){
+  //   // client.broadcast.to('collaboration').emit('client-disconnected', {clientId: client.id});
+  // });
+});
 
 
 app.use( (req, res, next) => {

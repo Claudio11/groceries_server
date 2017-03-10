@@ -27,14 +27,16 @@ let sendCurrentHashOnInvalid = (client) => {
  *  currentHash: <currentHash> }.
  */
 let createAnnotationsResponse = () => {
-  Annotation.find({}).populate('author').exec(function (err, list) {
-      if (err) {
-          return { success: false, error: err, annotations: list };
-      }
-      else {
-          return { success: true, annotations: list, currentHash: setCurrentHash() };
-      }
-  });
+  return new Promise((resolve, reject) => {
+      Annotation.find({}).populate('author').exec(function (err, list) {
+        if (err) {
+            reject({ success: false, error: err, annotations: list });
+        }
+        else {
+            resolve({ success: true, annotations: list, currentHash: setCurrentHash() });
+        }
+    });
+  });  
 }
 
 let sendError = (err) => {
@@ -52,16 +54,7 @@ setCurrentHash();
 
 let annotationsHelper = {
 
-  bindAnnotations: (app) => {
-
-    let server = require('http').createServer(app);
-    let io = require('socket.io')(server);
-
-    io.on('connection', function(client){
-      console.log(client.id)
-
-      client.join('collaboration');
-      client.emit('set-id', { clientId: client.id });
+  bindAnnotationsClientEvents: (io, client) => {
       client.emit('annotation-current-hash', { currentHash: currentHash });
 
       // Client created a new annotation.
@@ -73,7 +66,9 @@ let annotationsHelper = {
                 sendError(err);
               }
               else {
-                io.in('collaboration').emit('remote-annotations', createAnnotationsResponse());
+                createAnnotationsResponse().then(data => {
+                  io.in('collaboration').emit('remote-annotations', data);
+                });
               }
             });
         }
@@ -120,11 +115,26 @@ let annotationsHelper = {
         }
       });
 
-      client.on('disconnect', function(client){
-        io.in('collaboration').emit('client-disconnected', {clientId: client.id});
-      });
-    });
+      // client.on('disconnect', function(client){
+      //   io.in('collaboration').emit('client-disconnected', {clientId: client.id});
+      // });
   }
+
+  // bindAnnotations: (app) => {
+
+  //   let server = require('http').createServer(app);
+  //   let io = require('socket.io')(server);
+
+  //   io.on('connection', function(client){
+  //     console.log('#N2', client.id)
+
+  //     client.join('collaboration');
+  //     client.emit('set-id', { clientId: client.id });
+      
+
+
+  //   });
+  // }
 
 }
 
