@@ -98,7 +98,9 @@ let annotationsHelper = {
             sendError(err);
           }
           else {
-            io.in('collaboration').emit('remote-annotations', createAnnotationsResponse());
+            createAnnotationsResponse().then(data => {
+              io.in('collaboration').emit('remote-annotations', data);
+            });
           }
         });
       }

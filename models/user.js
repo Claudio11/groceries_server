@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
     'required': true
   },
 
-  'name': {
+  'username': {
     'type': String,
     'required': false
   },
@@ -39,10 +39,10 @@ const userSchema = new mongoose.Schema({
     'required': false  // TODO: True?
   }
 },
-{
+  {
     toObject: { virtuals: true },
     toJSON: { virtuals: true }
-});
+  });
 
 userSchema.virtual('id').get(function () {
   return this._id.toHexString();
@@ -52,14 +52,14 @@ userSchema.virtual('avatar').get(function () {
   return this.thumbnail;
 });
 
-userSchema.post('save', function(doc, next) {
+userSchema.post('save', function (doc, next) {
   let newStreamEvent = new StreamEvent({
-                                        type: 4,
-                                        name: 'New user created',
-                                        date: new Date()
-                                        });
+    type: 4,
+    name: 'New user created',
+    date: new Date()
+  });
   newStreamEvent.save(function (err) {
-      next();
+    next();
   });
 });
 
