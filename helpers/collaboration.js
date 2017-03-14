@@ -76,10 +76,11 @@ let isAnnotationLocked = (annotId) => {
 
 /**
  * Adds given annotation to the locked annotation map, saving the user id as value
- * @param {*} data 
+ * @param {string} annotationId
+ * @param {string} clientId  
  */
-let lockAnnotation = (data) => {
-  lockedAnnotations[data.annotation.id] = 'someId';
+let lockAnnotation = (annotationId, clientId) => {
+  lockedAnnotations[annotationId] = clientId;
   setCurrentLockHash();
 }
 
@@ -168,7 +169,7 @@ let annotationsHelper = {
         if (isAnnotationLocked(data.annotation.id)) {
           sendError(client, { message: 'Annotation already locked' });
         } else {
-          lockAnnotation(data);
+          lockAnnotation(data.annotation.id, client.id);
           sendLockedAnnotations(io);
         }
       }
