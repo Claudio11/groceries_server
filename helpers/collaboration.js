@@ -129,10 +129,12 @@ let annotationsHelper = {
     client.on('local-annotation-edit', function (data) {
       if (data.currentHash === currentHash) {
         let item = new Annotation(data.annotation);
-        item.update({ _id: item.id }, function (err) {
+        Annotation.findByIdAndUpdate(data.annotation.id, { $set: data.annotation }, {}, function (err) {
           if (err) {
             sendError(client, err);
           } else {
+            unlockAnnotation(data.annotation.id);
+            sendLockedAnnotations(io);
             createAnnotationsResponse().then(data => {
               io.in('collaboration').emit('remote-annotations', data);
             });
