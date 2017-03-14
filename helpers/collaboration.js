@@ -3,11 +3,17 @@ import uuid from 'node-uuid';
 import Annotation from '../models/annotation';
 
 let currentHash;
+let currentLockHash;
 let lockedAnnotations = {};
 
 let setCurrentHash = () => {
   currentHash = uuid.v1();
   return currentHash;
+}
+
+let setCurrentLockHash = () => {
+  currentLockHash = uuid.v1();
+  return currentLockHash;
 }
 
 /**
@@ -18,6 +24,16 @@ let setCurrentHash = () => {
  */
 let sendCurrentHashOnInvalid = (client) => {
   client.emit('annotation-hash-invalid', { latestHash: currentHash });
+}
+
+/**
+ *  When a client sends an outdated lock hash, server emits this to it to let him
+ *  know the current hash.
+ *
+ *  @param Client that sent the outdated hash.
+ */
+let sendCurrentLockHashOnInvalid = (client) => {
+  client.emit('annotation-lock-hash-invalid', { latestHash: currentLockHash });
 }
 
 /**
@@ -39,15 +55,41 @@ let createAnnotationsResponse = () => {
   });
 }
 
-let sendError = (err) => {
+let sendError = (client, err) => {
   client.emit('annotation-error', err);
 }
 
 /**
  *  Sends the object with locked annotations.
  */
-let sendLockedAnnotations = () => {
-  return { lockedAnnotations: lockedAnnotations, currentHash: currentHash };
+let sendLockedAnnotations = (io) => {
+  io.in('collaboration').emit('remote-annotations-lock', { lockedAnnotations: lockedAnnotations, currentLockHash: currentLockHash });
+}
+
+/**
+ * Checks if a given annotation is already locked or annotId
+ * @param {string} annotId id of the annotation
+ */
+let isAnnotationLocked = (annotId) => {
+  return typeof lockedAnnotations[annotId] !== 'undefined';
+}
+
+/**
+ * Adds given annotation to the locked annotation map, saving the user id as value
+ * @param {*} data 
+ */
+let lockAnnotation = (data) => {
+  lockedAnnotations[data.annotation.id] = 'someId';
+  setCurrentLockHash();
+}
+
+/**
+ * Removes a given annotation from the locked annotation map
+ * @param {string} annotId 
+ */
+let unlockAnnotation = (annotId) => {
+  delete lockedAnnotations[annotId];
+  setCurrentLockHash();
 }
 
 setCurrentHash();
@@ -60,13 +102,15 @@ let annotationsHelper = {
       io.in('collaboration').emit('remote-annotations', data);
     });
 
+    sendLockedAnnotations(io);
+
     // Client created a new annotation.
     client.on('local-annotation-create', function (data) {
       if (data.currentHash === currentHash) {
         let item = new Annotation(data.annotation);
         item.save((err) => {
           if (err) {
-            sendError(err);
+            sendError(client, err);
           }
           else {
             createAnnotationsResponse().then(data => {
@@ -83,7 +127,16 @@ let annotationsHelper = {
     // Client edited an annotation.
     client.on('local-annotation-edit', function (data) {
       if (data.currentHash === currentHash) {
-        io.in('collaboration').emit('remote-annotations', createAnnotationsResponse());
+        let item = new Annotation(data.annotation);
+        item.update({ _id: item.id }, function (err) {
+          if (err) {
+            sendError(client, err);
+          } else {
+            createAnnotationsResponse().then(data => {
+              io.in('collaboration').emit('remote-annotations', data);
+            });
+          }
+        });
       }
       else {
         sendCurrentHashOnInvalid(client);
@@ -95,7 +148,7 @@ let annotationsHelper = {
       if (data.currentHash === currentHash) {
         Annotation.remove({ _id: data.annotation.id }, function (err) {
           if (err) {
-            sendError(err);
+            sendError(client, err);
           }
           else {
             createAnnotationsResponse().then(data => {
@@ -111,12 +164,29 @@ let annotationsHelper = {
 
     // Client locked an annotation.
     client.on('local-annotation-lock', function (data) {
-      if (data.currentHash === currentHash) {
-        let response = { lockedAnnotation: data.id, currentHash: setCurrentHash() };
-        io.in('collaboration').emit('remote-annotations-lock', response);
+      if (data.currentLockHash === currentLockHash) {
+        if (isAnnotationLocked(data.annotation.id)) {
+          sendError(client, { message: 'Annotation already locked' });
+        } else {
+          lockAnnotation(data);
+          sendLockedAnnotations(io);
+        }
       }
       else {
-        sendCurrentHashOnInvalid(client);
+        sendCurrentLockHashOnInvalid(client);
+      }
+    });
+
+    // Client unlocked an annotation.
+    client.on('local-annotation-unlock', function (data) {
+      if (data.currentLockHash === currentLockHash) {
+        if (isAnnotationLocked(data.annotation.id)) {
+          unlockAnnotation(data.annotation.id);
+          sendLockedAnnotations(io);
+        }
+      }
+      else {
+        sendCurrentLockHashOnInvalid(client);
       }
     });
 
