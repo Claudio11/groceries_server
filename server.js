@@ -7,26 +7,32 @@ import annotationsHelper from './helpers/collaboration'
 
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
+let connectedUsers = {};
 
-io.on('connection', function(client){
+io.on('connection', function (client) {
   console.log(client.id)
 
   client.join('collaboration');
   client.emit('set-id', { clientId: client.id });
 
   client.on('local-mouse-move', function (data) { // On client move, broadcast to channel.
+    data.user = connectedUsers[client.id];
     client.broadcast.to('collaboration').emit('remote-mouse-move', data);
+  });
+
+  client.on('user-data', function (data) { // Associates the provided user data to the socket client and stores it in the connected users map
+    connectedUsers[client.id] = data;
   });
 
   annotationsHelper.bindAnnotationsClientEvents(io, client);
 
-  // client.on('disconnect', function(client){
-  //   // client.broadcast.to('collaboration').emit('client-disconnected', {clientId: client.id});
-  // });
+  client.on('disconnect', function (client) {
+    delete connectedUsers[client.id];
+  });
 });
 
 
-app.use( (req, res, next) => {
+app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -45,7 +51,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 mongoose.Promise = global.Promise;
-mongoose.connect(uri, {}, (err)=> {
+mongoose.connect(uri, {}, (err) => {
   if (err) {
     console.log('Connection Error: ', err);
   } else {
