@@ -122,7 +122,7 @@ let addGenericItemRoutes = (routeData) => {
 // Creates item PUT routes.
 let addUpdateRoutes = (routeData) => {
     router.put(`/${routeData.key}/:id`, upload.single('file'), function (req, res) {
-        let entity = JSON.parse(req.entity)
+        let entity = JSON.parse(req.body.entity)
         if (req.file && (req.file.mimetype === 'image/png' || req.file.mimetype === 'image/jpeg')) {
           console.dir(req.file);
           entity.thumbnail = req.file.path;
