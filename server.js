@@ -31,7 +31,6 @@ io.on('connection', function (client) {
   client.emit('connected-users', { users: generateCollaborationUsersArray() });
 
   client.on('local-mouse-move', function (data) { // On client move, broadcast to channel.
-    data.user = connectedUsers[client.id];
     client.broadcast.to('collaboration').emit('remote-mouse-move', data);
   });
 
