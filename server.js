@@ -4,6 +4,8 @@ import mongoose from 'mongoose';
 import routes from './routes';
 import bodyParser from 'body-parser';
 import annotationsHelper from './helpers/collaboration'
+import AppVersionRoom from './helpers/appVersion'
+
 
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
@@ -28,22 +30,22 @@ io.on('connection', function (client) {
   client.emit('connected-users', { users: generateCollaborationUsersArray() });
   client.emit('set-id', { clientId: client.id });
 
-  //Join app version channel
+  //Join app version room
   client.on('join-app-version-channel', function(room) {
-    console.log('JOIN ROOM: ', room);
-    client.join(room);
-
-    client.on('local-mouse-move', function (data) { // On client move, broadcast to channel.
-      data.user = connectedUsers[client.id];
-      client.broadcast.to(room).emit('remote-mouse-move', data);
-    });    
+    AppVersionRoom.leaveCurrentRoom(client);
+    AppVersionRoom.joinRoom(client, room);
   });
 
-  //Leave app version channel
+  //Leave app version room
   client.on('leave-app-version-channel', function(room) {
-    console.log('LEAVE ROOM: ', room);
-    client.leave(room);
+    AppVersionRoom.leaveRoom(client, room);
   })
+
+  // On client move, broadcast to the current app version room.
+  client.on('local-mouse-move', function (data) { 
+    data.user = connectedUsers[client.id];
+    client.broadcast.to(AppVersionRoom.getCurrentRoom(client)).emit('remote-mouse-move', data);
+  });
 
   client.on('disconnect', function (data) {
     let userData = connectedUsers[client.id];
