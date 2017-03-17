@@ -4,6 +4,8 @@ import mongoose from 'mongoose';
 import routes from './routes';
 import bodyParser from 'body-parser';
 import annotationsHelper from './helpers/collaboration'
+import AppVersionRoom from './helpers/appVersion'
+
 
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
@@ -24,26 +26,36 @@ let generateCollaborationUsersArray = () => {
 }
 
 io.on('connection', function (client) {
-  console.log(client.id)
-
   client.join('collaboration');
-  client.emit('set-id', { clientId: client.id });
   client.emit('connected-users', { users: generateCollaborationUsersArray() });
+  client.emit('set-id', { clientId: client.id });
 
-  client.on('local-mouse-move', function (data) { // On client move, broadcast to channel.
-    client.broadcast.to('collaboration').emit('remote-mouse-move', data);
+  //Join app version room
+  client.on('join-app-version-channel', function(room) {
+    AppVersionRoom.leaveCurrentRoom(client);
+    AppVersionRoom.joinRoom(client, room);
   });
 
-  client.on('user-data', function (data) { // Associates the provided user data to the socket client and stores it in the connected users map
-    data.socketId = client.id;
-    connectedUsers[client.id] = data;
-    client.broadcast.to('collaboration').emit('user-connected', connectedUsers[client.id]);
+  //Leave app version room
+  client.on('leave-app-version-channel', function() {
+    AppVersionRoom.leaveCurrentRoom(client);
+  })
+
+  // On client move, broadcast to the current app version room.
+  client.on('local-mouse-move', function (data) { 
+    client.broadcast.to(AppVersionRoom.getCurrentRoom(client)).emit('remote-mouse-move', data);
   });
 
   client.on('disconnect', function (data) {
     let userData = connectedUsers[client.id];
     io.in('collaboration').emit('user-disconnected', userData.socketId ? userData : client.id);
     delete connectedUsers[client.id];
+  });
+
+  client.on('user-data', function (data) { // Associates the provided user data to the socket client and stores it in the connected users map
+    data.socketId = client.id;
+    connectedUsers[client.id] = data;
+    client.broadcast.to('collaboration').emit('user-connected', connectedUsers[client.id]);
   });
 
   annotationsHelper.bindAnnotationsClientEvents(io, client);
