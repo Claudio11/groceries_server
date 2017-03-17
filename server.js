@@ -9,11 +9,26 @@ var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 let connectedUsers = {};
 
+/**
+ * Checks if a given annotation is already locked or annotId
+ * @param {string} annotId id of the annotation
+ */
+let generateCollaborationUsersArray = () => {
+  let returnArray = [];
+  for (var i in connectedUsers) {
+    if (connectedUsers.hasOwnProperty(i)) {
+      returnArray.push(connectedUsers[i]);
+    }
+  }
+  return returnArray;
+}
+
 io.on('connection', function (client) {
   console.log(client.id)
 
   client.join('collaboration');
   client.emit('set-id', { clientId: client.id });
+  client.emit('connected-users', { users: generateCollaborationUsersArray() });
 
   client.on('local-mouse-move', function (data) { // On client move, broadcast to channel.
     data.user = connectedUsers[client.id];
@@ -21,14 +36,18 @@ io.on('connection', function (client) {
   });
 
   client.on('user-data', function (data) { // Associates the provided user data to the socket client and stores it in the connected users map
+    data.socketId = client.id;
     connectedUsers[client.id] = data;
+    client.broadcast.to('collaboration').emit('user-connected', connectedUsers[client.id]);
+  });
+
+  client.on('disconnect', function (data) {
+    let userData = connectedUsers[client.id];
+    io.in('collaboration').emit('user-disconnected', userData.socketId ? userData : client.id);
+    delete connectedUsers[client.id];
   });
 
   annotationsHelper.bindAnnotationsClientEvents(io, client);
-
-  client.on('disconnect', function (client) {
-    delete connectedUsers[client.id];
-  });
 });
 
 
