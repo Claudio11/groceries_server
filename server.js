@@ -37,8 +37,8 @@ io.on('connection', function (client) {
   });
 
   //Leave app version room
-  client.on('leave-app-version-channel', function(room) {
-    AppVersionRoom.leaveRoom(client, room);
+  client.on('leave-app-version-channel', function() {
+    AppVersionRoom.leaveCurrentRoom(client);
   })
 
   // On client move, broadcast to the current app version room.
