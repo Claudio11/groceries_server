@@ -10,21 +10,35 @@ var io = require('socket.io')(server);
 let connectedUsers = {};
 
 io.on('connection', function (client) {
-  console.log(client.id)
 
-  client.join('collaboration');
-  client.emit('set-id', { clientId: client.id });
+  //Join app version channel
+  client.on('join-app-version-channel', function(room) {
+    console.log('JOIN ROOM: ', room);
+    //Join room channel and set the room for the mouse movement
+    client.join(room);
 
-  client.on('local-mouse-move', function (data) { // On client move, broadcast to channel.
-    data.user = connectedUsers[client.id];
-    client.broadcast.to('collaboration').emit('remote-mouse-move', data);
+    client.on('local-mouse-move', function (data) { // On client move, broadcast to channel.
+      data.user = connectedUsers[client.id];
+      client.broadcast.to(room).emit('remote-mouse-move', data);
+    });
+
   });
+
+  annotationsHelper.bindAnnotationsClientEvents(io, client);
+  client.join('collaboration');
+
+  //Leave app version channel
+  client.on('leave-app-version-channel', function(room) {
+    console.log('LEAVE ROOM: ', room);
+    //Leave room channel
+    client.leave(room);
+  })
+
+  client.emit('set-id', { clientId: client.id });
 
   client.on('user-data', function (data) { // Associates the provided user data to the socket client and stores it in the connected users map
     connectedUsers[client.id] = data;
   });
-
-  annotationsHelper.bindAnnotationsClientEvents(io, client);
 
   client.on('disconnect', function (client) {
     delete connectedUsers[client.id];
