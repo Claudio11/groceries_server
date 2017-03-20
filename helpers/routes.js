@@ -63,7 +63,7 @@ let generatePopulateConfig = (parent) => {
  */
 let saveAndRetrieveChildRecord = (childData, childMetadata, successCb, failureCb) => {
     if (childData.id) { // Existing child record
-        childMetadata.model.findOne( { _id: childData.id }, function (err, doc) {
+        childMetadata.model.findOneAndUpdate( { _id: childData.id }, childData, { upsert: true }, function (err, doc) {
             if (err) {
                 failureCb(err);
             }
@@ -308,6 +308,60 @@ let addPostForChildrenRoutes = (routeData) => {
     }
 }
 
+
+// Creates children item PUT routes.
+let addPutForChildrenRoutes = (routeData) => {
+    let childrenArray = (routeData && routeData.children) ? routeData.children.split(' ') : [];
+    for (let i in childrenArray) {
+        let child = childrenArray[i];
+        router.put(`/${routeData.key}/:id/${child}/:childId`, upload.single('file'), function (req, res, next) {
+          routeData.model.findOne({_id: req.params.id}).populate(child)
+            .exec(function (err, parent) {
+                let parentModel = new routeData.model(parent);
+                let childMetadata = getRouteMetadata(child);
+
+                let currentChild = JSON.parse(req.body.entity)
+                if (req.file && (req.file.mimetype === 'image/png' || req.file.mimetype === 'image/jpeg')) {
+                  currentChild.thumbnail = req.file.path;
+                }
+
+                if (parentModel[child]) {
+                    saveAndRetrieveChildRecord(currentChild, childMetadata, function (newChild) {
+                        parentModel.save(function(err) {
+                            if (err) {
+                                res.send(err);
+                            } else {
+                                childMetadata.model.findOne({ _id: newChild._id })
+                                  .populate(childMetadata.children).exec(function (err, item) {
+                                      let data = { data: {} };
+                                      if (err) {
+                                          res.send(err);
+                                      }
+                                      else {
+                                          if (item) {
+                                              data = { data: item };
+                                              res.send(data);
+                                          }
+                                          else {
+                                              res.status(404).send({'message': 'Record not found'});
+                                          }
+                                      }
+                                  });
+                            }
+                        });
+                    }, function (err) {
+                        res.send(err); // Error cb.
+                    });
+                }
+                else {
+                    res.status(404).send({'error': 'Child attribute not found'});
+                }
+            });
+
+        });
+    }
+}
+
 // Delete for children.
 let addDeleteForChildrenRoutes = (routeData) => {
     let childrenArray = (routeData && routeData.children) ? routeData.children.split(' ') : [];
@@ -366,6 +420,7 @@ let routesHelper = {
                 addChildrenGetRecordRoutes(routeData);
                 addPostForChildrenRoutes(routeData);
                 addDeleteForChildrenRoutes(routeData);
+                addPutForChildrenRoutes(routeData);
             }
         }
     },
